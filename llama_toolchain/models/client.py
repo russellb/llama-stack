@@ -36,11 +36,14 @@ class ModelsClient(Models):
                 headers={"Content-Type": "application/json"},
             )
             response.raise_for_status()
-            return
+            return ModelsListResponse(**response.json())
 
 
 async def run_main(host: str, port: int, stream: bool):
     client = ModelsClient(f"http://{host}:{port}")
+
+    response = await client.list_models()
+    cprint(json.dumps(response.to_dict(), indent=2), "green")
 
 
 def main(host: str, port: int, stream: bool = True):

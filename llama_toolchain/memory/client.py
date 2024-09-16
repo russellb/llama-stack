@@ -6,15 +6,16 @@
 
 import asyncio
 import json
+import os
 from pathlib import Path
 
 from typing import Any, Dict, List, Optional
 
 import fire
 import httpx
-from termcolor import cprint
 
 from llama_toolchain.core.datatypes import RemoteProviderConfig
+from termcolor import cprint
 
 from .api import *  # noqa: F403
 from .common.file_utils import data_url_from_file

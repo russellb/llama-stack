@@ -6,15 +6,15 @@
 
 from typing import Dict, List, Optional, Protocol
 
-from llama_models.datatypes import Model
+from llama_models.llama3.api.datatypes import *  # noqa: F403
 
-from llama_models.schema_utils import webmethod  # noqa: F401
-from pydantic import BaseModel  # noqa: F401
+from llama_models.schema_utils import json_schema_type, webmethod
+from pydantic import BaseModel, Field
 
 
 @json_schema_type
 class ModelSpec(BaseModel):
-    model_metadata: Model = Field(
+    metadata: Model = Field(
         description="All metadatas associated with the model (defined in llama_models.models.sku_list). "
     )
     providers_spec: Dict[str, List[Any]] = Field(
@@ -45,12 +45,12 @@ class ModelsListResponse(BaseModel):
 
 @json_schema_type
 class ModelsGetResponse(BaseModel):
-    model_spec: ModelSpec
+    core_model_spec: ModelSpec
 
 
 @json_schema_type
 class ModelsRegisterResponse(BaseModel):
-    model_spec: ModelSpec
+    core_model_spec: ModelSpec
 
 
 class Models(Protocol):
@@ -62,5 +62,5 @@ class Models(Protocol):
 
     @webmethod(route="/models/register")
     async def register_model(
-        self, model_id: str, provider: Api, provider_spec: Dict[str, str]
+        self, model_id: str, provider: str, provider_spec: Dict[str, str]
     ) -> ModelsRegisterResponse: ...
