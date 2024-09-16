@@ -12,7 +12,7 @@ from llama_toolchain.core.datatypes import *  # noqa: F403
 def available_providers() -> List[ProviderSpec]:
     return [
         InlineProviderSpec(
-            api=Api.inference,
+            api=Api.models,
             provider_id="meta-reference",
             pip_packages=[],
             module="llama_toolchain.models.meta_reference",

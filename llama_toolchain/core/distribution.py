@@ -11,6 +11,7 @@ from typing import Dict, List
 from llama_toolchain.agentic_system.api import AgenticSystem
 from llama_toolchain.inference.api import Inference
 from llama_toolchain.memory.api import Memory
+from llama_toolchain.models.api import Models
 from llama_toolchain.safety.api import Safety
 from llama_toolchain.telemetry.api import Telemetry
 
@@ -37,6 +38,7 @@ def api_endpoints() -> Dict[Api, List[ApiEndpoint]]:
         Api.agentic_system: AgenticSystem,
         Api.memory: Memory,
         Api.telemetry: Telemetry,
+        Api.models: Models,
     }
 
     for api, protocol in protocols.items():

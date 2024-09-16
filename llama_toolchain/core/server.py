@@ -34,9 +34,6 @@ from fastapi import Body, FastAPI, HTTPException, Request, Response
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, StreamingResponse
 from fastapi.routing import APIRoute
-from pydantic import BaseModel, ValidationError
-from termcolor import cprint
-from typing_extensions import Annotated
 
 from llama_toolchain.telemetry.tracing import (
     end_trace,
@@ -44,6 +41,9 @@ from llama_toolchain.telemetry.tracing import (
     SpanStatus,
     start_trace,
 )
+from pydantic import BaseModel, ValidationError
+from termcolor import cprint
+from typing_extensions import Annotated
 
 from .datatypes import Api, InlineProviderSpec, ProviderSpec, RemoteProviderSpec
 from .distribution import api_endpoints, api_providers
@@ -310,6 +310,7 @@ def main(yaml_config: str, port: int = 5000, disable_ipv6: bool = False):
         api = Api(api_str)
         providers = all_providers[api]
         provider_id = provider_config["provider_id"]
+        print(provider_config)
         if provider_id not in providers:
             raise ValueError(
                 f"Unknown provider `{provider_id}` is not available for API `{api}`"
@@ -318,6 +319,8 @@ def main(yaml_config: str, port: int = 5000, disable_ipv6: bool = False):
         provider_specs[api] = providers[provider_id]
 
     impls = resolve_impls(provider_specs, config)
+    print(impls)
+
     if Api.telemetry in impls:
         setup_logger(impls[Api.telemetry])
 

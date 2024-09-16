@@ -8,7 +8,7 @@ from .config import MetaReferenceImplConfig  # noqa
 
 
 async def get_provider_impl(config: MetaReferenceImplConfig, _deps):
-    from .inference import MetaReferenceInferenceImpl
+    from .models import MetaReferenceInferenceImpl
 
     assert isinstance(
         config, MetaReferenceImplConfig
