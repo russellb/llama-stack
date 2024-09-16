@@ -57,10 +57,10 @@ class Models(Protocol):
     @webmethod(route="/models/list", method="GET")
     async def list_models(self) -> ModelsListResponse: ...
 
-    @webmethod(route="/models/get", method="GET")
+    @webmethod(route="/models/get", method="POST")
     async def get_model(self, model_id: str) -> ModelsGetResponse: ...
 
     @webmethod(route="/models/register")
     async def register_model(
-        self, model_id: str, provider: str, provider_spec: Dict[str, str]
+        self, model_id: str, api: str, provider_spec: Dict[str, str]
     ) -> ModelsRegisterResponse: ...

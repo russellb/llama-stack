@@ -19,6 +19,31 @@ from llama_toolchain.safety.api import Safety
 
 from .config import MetaReferenceImplConfig
 
+DUMMY_MODEL_SPEC = ModelSpec(
+    metadata=Model(
+        core_model_id=CoreModelId.meta_llama3_8b_instruct,
+        is_default_variant=True,
+        description_markdown="Llama 3 8b instruct model",
+        huggingface_repo="meta-llama/Meta-Llama-3-8B-Instruct",
+        # recommended_sampling_params=recommended_sampling_params(),
+        model_args={
+            "dim": 4096,
+            "n_layers": 32,
+            "n_heads": 32,
+            "n_kv_heads": 8,
+            "ffn_dim_multiplier": 1.3,
+            "multiple_of": 1024,
+            "norm_eps": 1e-05,
+            "rope_theta": 500000.0,
+            "use_scaled_rope": False,
+        },
+        pth_file_count=1,
+    ),
+    providers_spec={
+        "inference": [{"provider_type": "meta-reference"}],
+    },
+)
+
 
 class MetaReferenceModelsImpl(Models):
     def __init__(
@@ -35,31 +60,12 @@ class MetaReferenceModelsImpl(Models):
         pass
 
     async def list_models(self) -> ModelsListResponse:
-        return ModelsListResponse(
-            models_list=[
-                ModelSpec(
-                    metadata=Model(
-                        core_model_id=CoreModelId.meta_llama3_8b_instruct,
-                        is_default_variant=True,
-                        description_markdown="Llama 3 8b instruct model",
-                        huggingface_repo="meta-llama/Meta-Llama-3-8B-Instruct",
-                        # recommended_sampling_params=recommended_sampling_params(),
-                        model_args={
-                            "dim": 4096,
-                            "n_layers": 32,
-                            "n_heads": 32,
-                            "n_kv_heads": 8,
-                            "ffn_dim_multiplier": 1.3,
-                            "multiple_of": 1024,
-                            "norm_eps": 1e-05,
-                            "rope_theta": 500000.0,
-                            "use_scaled_rope": False,
-                        },
-                        pth_file_count=1,
-                    ),
-                    providers_spec={
-                        "inference": [{"provider_type": "meta-reference"}],
-                    },
-                )
-            ]
-        )
+        return ModelsListResponse(models_list=[DUMMY_MODEL_SPEC])
+
+    async def get_model(self, model_id: str) -> ModelsGetResponse:
+        return ModelsGetResponse(core_model_spec=DUMMY_MODEL_SPEC)
+
+    async def register_model(
+        self, model_id: str, api: str, provider_spec: Dict[str, str]
+    ) -> ModelsRegisterResponse:
+        return ModelsGetResponse(core_model_spec=DUMMY_MODEL_SPEC)
