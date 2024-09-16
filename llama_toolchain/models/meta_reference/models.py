@@ -12,7 +12,12 @@ from llama_models.sku_list import resolve_model
 
 from llama_toolchain.models.api import *  # noqa: F403
 from llama_models.llama3.api.datatypes import *  # noqa: F403
-from llama_models.models.datatypes import CoreModelId, Model
+from llama_models.datatypes import CoreModelId, Model
+
+from llama_toolchain.inference.api import Inference
+from llama_toolchain.safety.api import Safety
+
+from .config import MetaReferenceImplConfig
 
 
 class MetaReferenceModelsImpl(Models):
@@ -25,6 +30,9 @@ class MetaReferenceModelsImpl(Models):
         self.config = config
         self.inference_api = inference_api
         self.safety_api = safety_api
+
+    async def initialize(self) -> None:
+        pass
 
     async def list_models(self) -> ModelsListResponse:
         return ModelsListResponse(
@@ -41,7 +49,6 @@ class MetaReferenceModelsImpl(Models):
                             "n_layers": 32,
                             "n_heads": 32,
                             "n_kv_heads": 8,
-                            "vocab_size": LLAMA3_VOCAB_SIZE,
                             "ffn_dim_multiplier": 1.3,
                             "multiple_of": 1024,
                             "norm_eps": 1e-05,

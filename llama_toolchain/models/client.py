@@ -43,7 +43,7 @@ async def run_main(host: str, port: int, stream: bool):
     client = ModelsClient(f"http://{host}:{port}")
 
     response = await client.list_models()
-    cprint(json.dumps(response.to_dict(), indent=2), "green")
+    cprint(response, "green")
 
 
 def main(host: str, port: int, stream: bool = True):
