@@ -55,10 +55,10 @@ async def run_main(host: str, port: int, stream: bool):
     client = ModelsClient(f"http://{host}:{port}")
 
     response = await client.list_models()
-    cprint(response, "green")
+    cprint(f"list_models response={response}", "green")
 
     response = await client.get_model()
-    cprint(response, "blue")
+    cprint(f"get_model response={response}", "blue")
 
 
 def main(host: str, port: int, stream: bool = True):
