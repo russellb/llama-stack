@@ -13,36 +13,17 @@ from llama_models.sku_list import resolve_model
 from llama_toolchain.models.api import *  # noqa: F403
 from llama_models.llama3.api.datatypes import *  # noqa: F403
 from llama_models.datatypes import CoreModelId, Model
+from llama_models.sku_list import resolve_model
 
 from llama_toolchain.inference.api import Inference
+
+from llama_toolchain.inference.meta_reference.inference import (
+    MetaReferenceInferenceImpl,
+)
 from llama_toolchain.safety.api import Safety
+from llama_toolchain.safety.meta_reference.safety import MetaReferenceSafetyImpl
 
 from .config import MetaReferenceImplConfig
-
-DUMMY_MODEL_SPEC = ModelSpec(
-    metadata=Model(
-        core_model_id=CoreModelId.meta_llama3_8b_instruct,
-        is_default_variant=True,
-        description_markdown="Llama 3 8b instruct model",
-        huggingface_repo="meta-llama/Meta-Llama-3-8B-Instruct",
-        # recommended_sampling_params=recommended_sampling_params(),
-        model_args={
-            "dim": 4096,
-            "n_layers": 32,
-            "n_heads": 32,
-            "n_kv_heads": 8,
-            "ffn_dim_multiplier": 1.3,
-            "multiple_of": 1024,
-            "norm_eps": 1e-05,
-            "rope_theta": 500000.0,
-            "use_scaled_rope": False,
-        },
-        pth_file_count=1,
-    ),
-    providers_spec={
-        "inference": [{"provider_type": "meta-reference"}],
-    },
-)
 
 
 class MetaReferenceModelsImpl(Models):
@@ -56,16 +37,62 @@ class MetaReferenceModelsImpl(Models):
         self.inference_api = inference_api
         self.safety_api = safety_api
 
+        self.models_list = []
+        # TODO, make the inference route provider and use router provider to do the lookup dynamically
+        if isinstance(
+            self.inference_api,
+            MetaReferenceInferenceImpl,
+        ):
+            model = resolve_model(self.inference_api.config.model)
+            self.models_list.append(
+                ModelSpec(
+                    llama_model_metadata=model,
+                    providers_spec={
+                        "inference": [{"provider_type": "meta-reference"}],
+                    },
+                )
+            )
+
+        if isinstance(
+            self.safety_api,
+            MetaReferenceSafetyImpl,
+        ):
+            shield_cfg = self.safety_api.config.llama_guard_shield
+            if shield_cfg is not None:
+                model = resolve_model(shield_cfg.model)
+                self.models_list.append(
+                    ModelSpec(
+                        llama_model_metadata=model,
+                        providers_spec={
+                            "safety": [{"provider_type": "meta-reference"}],
+                        },
+                    )
+                )
+            shield_cfg = self.safety_api.config.prompt_guard_shield
+            if shield_cfg is not None:
+                model = resolve_model(shield_cfg.model)
+                self.models_list.append(
+                    ModelSpec(
+                        llama_model_metadata=model,
+                        providers_spec={
+                            "safety": [{"provider_type": "meta-reference"}],
+                        },
+                    )
+                )
+
     async def initialize(self) -> None:
         pass
 
     async def list_models(self) -> ModelsListResponse:
-        return ModelsListResponse(models_list=[DUMMY_MODEL_SPEC])
+        return ModelsListResponse(models_list=self.models_list)
 
     async def get_model(self, model_id: str) -> ModelsGetResponse:
-        return ModelsGetResponse(core_model_spec=DUMMY_MODEL_SPEC)
+        for model in self.models_list:
+            if model.llama_model_metadata.core_model_id.value == model_id:
+                return ModelsGetResponse(core_model_spec=model)
+        return ModelsGetResponse()
 
     async def register_model(
         self, model_id: str, api: str, provider_spec: Dict[str, str]
     ) -> ModelsRegisterResponse:
-        return ModelsGetResponse(core_model_spec=DUMMY_MODEL_SPEC)
+        return ModelsRegisterResponse()

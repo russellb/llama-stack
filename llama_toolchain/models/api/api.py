@@ -14,8 +14,8 @@ from pydantic import BaseModel, Field
 
 @json_schema_type
 class ModelSpec(BaseModel):
-    metadata: Model = Field(
-        description="All metadatas associated with the model (defined in llama_models.models.sku_list). "
+    llama_model_metadata: Model = Field(
+        description="All metadatas associated with llama model (defined in llama_models.models.sku_list). "
     )
     providers_spec: Dict[str, List[Any]] = Field(
         default_factory=dict,
@@ -45,12 +45,12 @@ class ModelsListResponse(BaseModel):
 
 @json_schema_type
 class ModelsGetResponse(BaseModel):
-    core_model_spec: ModelSpec
+    core_model_spec: Optional[ModelSpec] = None
 
 
 @json_schema_type
 class ModelsRegisterResponse(BaseModel):
-    core_model_spec: ModelSpec
+    core_model_spec: Optional[ModelSpec] = None
 
 
 class Models(Protocol):

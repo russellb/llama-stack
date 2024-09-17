@@ -38,12 +38,12 @@ class ModelsClient(Models):
             response.raise_for_status()
             return ModelsListResponse(**response.json())
 
-    async def get_model(self) -> List[ModelSpec]:
+    async def get_model(self, model_id: str) -> List[ModelSpec]:
         async with httpx.AsyncClient() as client:
             response = await client.post(
                 f"{self.base_url}/models/get",
                 json={
-                    "model_id": "1234",
+                    "model_id": model_id,
                 },
                 headers={"Content-Type": "application/json"},
             )
@@ -57,8 +57,11 @@ async def run_main(host: str, port: int, stream: bool):
     response = await client.list_models()
     cprint(f"list_models response={response}", "green")
 
-    response = await client.get_model()
+    response = await client.get_model("Meta-Llama3.1-8B-Instruct")
     cprint(f"get_model response={response}", "blue")
+
+    response = await client.get_model("Llama-Guard-3-8B")
+    cprint(f"get_model response={response}", "red")
 
 
 def main(host: str, port: int, stream: bool = True):
