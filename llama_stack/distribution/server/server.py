@@ -227,6 +227,7 @@ def create_dynamic_typed_route(
 
         async def endpoint(request: Request, **kwargs):
             await start_trace(func.__name__)
+            cprint(f"> endpoint = {func}", "red")
 
             set_request_provider_data(request.headers, provider_data_validator)
 

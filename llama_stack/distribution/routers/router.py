@@ -7,6 +7,14 @@ import inspect
 from types import MethodType
 from typing import Any, AsyncGenerator, Dict, List, Tuple
 from llama_stack.apis.inference import *  # noqa: F403
+
+# async def wrapper(key_to_impls, method_name, **kwargs):
+#     cprint(kwargs, "green")
+#     impl = key_to_impls["Meta-Llama3.1-8B-Instruct"]
+#     method = getattr(impl, method_name)
+#     return await method(**kwargs)
+import types
+
 from fastapi import Request
 
 from llama_stack.distribution.datatypes import Api, GenericProviderConfig
@@ -14,6 +22,26 @@ from llama_stack.distribution.distribution import api_protocols, api_providers
 from llama_stack.distribution.utils.dynamic import instantiate_provider
 from llama_stack.providers.registry.inference import available_providers
 from termcolor import cprint
+
+
+def copy_func(f, name=None):
+    fn = types.FunctionType(
+        f.__code__, f.__globals__, name or f.__name__, f.__defaults__, f.__closure__
+    )
+    # in case f was given attrs (note this dict is a shallow copy):
+    fn.__dict__.update(f.__dict__)
+    return fn
+
+
+def get_dynamic_route(keys_to_impls, method_name):
+    async def wrapper(*args, **kwargs):
+        cprint(kwargs, "green")
+        impl = keys_to_impls["Meta-Llama3.1-8B-Instruct"]
+        method = getattr(impl, method_name)
+        cprint(f"method={method}", "red")
+        return await method(**kwargs)
+
+    return wrapper
 
 
 class Router:
@@ -47,24 +75,28 @@ class Router:
 
         cprint(self.routing_key_to_impls, "red")
 
-        # for name, method in protocol_methods:
-        #     if not hasattr(method, "__webmethod__"):
-        #         continue
+        for name, method in protocol_methods:
+            if not hasattr(method, "__webmethod__"):
+                continue
 
-        #     async def wrapper(self, name, **kwargs):
-        #         impl = self.routing_key_to_impls["Meta-Llama3.1-8B-Instruct"]
-        #         method = getattr(impl, name)
-        #         return await method(**kwargs)
+            endpoint = get_dynamic_route(self.routing_key_to_impls, name)
+            endpoint.__doc__ = name
+            sig = inspect.signature(method)
+            endpoint.__signature__ = inspect.signature(method)
+            cprint(f"method={method}, name={name}", "red")
+            cprint(f"sig={sig}", "blue")
+            setattr(self, name, MethodType(endpoint, self))
 
-        #     cprint(f"method={method}, name={name}", "red")
-
-        #     setattr(self, name, MethodType(wrapper, self))
+        my_method = getattr(self, "chat_completion")
+        cprint(f"my_chat_completion_method={my_method}", "yellow")
+        my_method = getattr(self, "embeddings")
+        cprint(f"my_embedding_method={my_method}", "yellow")
 
     async def shutdown(self) -> None:
         pass
 
-    async def chat_completion(self, *args, **kwargs):
-        pass
+    # async def chat_completion(self, x: Dict[Any, Any]) -> AsyncGenerator:
+    #     pass
 
     # async def completion(self, *args, **kwargs):
     #     pass
@@ -72,14 +104,14 @@ class Router:
     # async def embedding(self, *args, **kwargs):
     #     pass
 
-    async def completion(
-        self,
-        model: str,
-        content: InterleavedTextMedia,
-        sampling_params: Optional[SamplingParams] = SamplingParams(),
-        stream: Optional[bool] = False,
-        logprobs: Optional[LogProbConfig] = None,
-    ) -> Union[CompletionResponse, CompletionResponseStreamChunk]: ...
+    # async def completion(
+    #     self,
+    #     model: str,
+    #     content: InterleavedTextMedia,
+    #     sampling_params: Optional[SamplingParams] = SamplingParams(),
+    #     stream: Optional[bool] = False,
+    #     logprobs: Optional[LogProbConfig] = None,
+    # ) -> Union[CompletionResponse, CompletionResponseStreamChunk]: ...
 
     # async def chat_completion(
     #     self,
@@ -105,8 +137,8 @@ class Router:
     #     ):
     #         yield chunk
 
-    async def embeddings(
-        self,
-        model: str,
-        contents: List[InterleavedTextMedia],
-    ) -> EmbeddingsResponse: ...
+    # async def embeddings(
+    #     self,
+    #     model: str,
+    #     contents: List[InterleavedTextMedia],
+    # ) -> EmbeddingsResponse: ...
