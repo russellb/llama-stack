@@ -6,7 +6,7 @@
 
 import importlib
 import inspect
-from typing import Dict, List
+from typing import Any, Dict, List
 
 from llama_stack.apis.agents import Agents
 from llama_stack.apis.inference import Inference
@@ -25,6 +25,16 @@ SERVER_DEPENDENCIES = [
 ]
 
 
+def api_protocols() -> Dict[str, Any]:
+    return {
+        Api.inference: Inference,
+        Api.safety: Safety,
+        Api.agents: Agents,
+        Api.memory: Memory,
+        Api.telemetry: Telemetry,
+    }
+
+
 def stack_apis() -> List[Api]:
     return [v for v in Api]
 
@@ -32,13 +42,7 @@ def stack_apis() -> List[Api]:
 def api_endpoints() -> Dict[Api, List[ApiEndpoint]]:
     apis = {}
 
-    protocols = {
-        Api.inference: Inference,
-        Api.safety: Safety,
-        Api.agents: Agents,
-        Api.memory: Memory,
-        Api.telemetry: Telemetry,
-    }
+    protocols = api_protocols()
 
     for api, protocol in protocols.items():
         endpoints = []

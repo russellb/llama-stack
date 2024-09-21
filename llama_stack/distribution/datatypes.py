@@ -64,6 +64,10 @@ Fully-qualified name of the module to import. The module is expected to have:
     def pip_packages(self) -> List[str]:
         raise AssertionError("Should not be called on RouterProviderSpec")
 
+    provider_data_validator: Optional[str] = Field(
+        default=None,
+    )
+
 
 class GenericProviderConfig(BaseModel):
     provider_id: str
@@ -209,7 +213,8 @@ class ProviderRoutingEntry(GenericProviderConfig):
     routing_key: str
 
 
-ProviderMapEntry = Union[GenericProviderConfig, List[ProviderRoutingEntry]]
+ProviderMapEntry = Union[GenericProviderConfig, str]
+ProviderRoutingTableEntry = List[ProviderRoutingEntry]
 
 
 @json_schema_type
@@ -247,6 +252,12 @@ As examples:
 - the "memory" API interprets the routing_key as the type of a "memory bank"
 
 The key may support wild-cards alsothe routing_key to route to the correct provider.""",
+    )
+    provider_routing_table: Dict[str, ProviderRoutingTableEntry] = Field(
+        description="""
+        Map of API to a list of providers backing the API. 
+        Each provider is a (routing_key, provider_config) tuple.
+        """
     )
 
 
