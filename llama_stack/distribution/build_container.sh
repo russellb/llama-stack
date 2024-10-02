@@ -56,12 +56,18 @@ RUN apt-get update && apt-get install -y \
        procps psmisc lsof \
        traceroute \
        bubblewrap \
+       python3-pip \
        && rm -rf /var/lib/apt/lists/*
 
 EOF
 
 stack_mount="/app/llama-stack-source"
 models_mount="/app/llama-models-source"
+
+# TODO - Otherwise we get an error on pip install using the cuda ubuntu base
+# image ... maybe add pip_options to the build template so options can be
+# specified along side the custom docker image?
+pip_options="--break-system-packages"
 
 if [ -n "$LLAMA_STACK_DIR" ]; then
   if [ ! -d "$LLAMA_STACK_DIR" ]; then
@@ -72,9 +78,9 @@ if [ -n "$LLAMA_STACK_DIR" ]; then
   # Install in editable format. We will mount the source code into the container
   # so that changes will be reflected in the container without having to do a
   # rebuild. This is just for development convenience.
-  add_to_docker "RUN pip install -e $stack_mount"
+  add_to_docker "RUN pip install $pip_options -e $stack_mount"
 else
-  add_to_docker "RUN pip install llama-stack"
+  add_to_docker "RUN pip install $pip_options llama-stack"
 fi
 
 if [ -n "$LLAMA_MODELS_DIR" ]; then
@@ -85,19 +91,19 @@ if [ -n "$LLAMA_MODELS_DIR" ]; then
 
   add_to_docker <<EOF
 RUN pip uninstall -y llama-models
-RUN pip install $models_mount
+RUN pip install $pip_options $models_mount
 
 EOF
 fi
 
 if [ -n "$pip_dependencies" ]; then
-  add_to_docker "RUN pip install $pip_dependencies"
+  add_to_docker "RUN pip install $pip_options $pip_dependencies"
 fi
 
 if [ -n "$special_pip_deps" ]; then
   IFS='#' read -ra parts <<< "$special_pip_deps"
   for part in "${parts[@]}"; do
-    add_to_docker "RUN pip install $part"
+    add_to_docker "RUN pip install $pip_options $part"
   done
 fi
 
@@ -106,7 +112,7 @@ add_to_docker <<EOF
 # This would be good in production but for debugging flexibility lets not add it right now
 # We need a more solid production ready entrypoint.sh anyway
 #
-ENTRYPOINT ["python", "-m", "llama_stack.distribution.server.server"]
+ENTRYPOINT ["python3", "-m", "llama_stack.distribution.server.server"]
 
 EOF
 
